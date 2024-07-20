@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Birthday Cake</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fce4ec; /* Light pink background */
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* Ensure confetti stays within viewport */
+        }
+
+        .cake {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background: #fff;
+            border: 5px solid #e91e63; /* Pink border */
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cake::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: #e91e63;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .flame {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            width: 40px;
+            height: 60px;
+            background: #ffeb3b; /* Yellow flame */
+            border-radius: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.5s ease;
+            opacity: 1; /* Start with the flame visible */
+        }
+
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 10; /* Make sure confetti is above the cake */
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffeb3b; /* Yellow confetti */
+            border-radius: 50%;
+            opacity: 0;
+            animation: fall 2s forwards, expand 0.5s forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes expand {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cake">
+        <div class="flame" id="flame"></div>
+    </div>
+    <div class="confetti" id="confetti"></div>
+    <script>
+        let flame = document.getElementById('flame');
+        let confettiContainer = document.getElementById('confetti');
+        let confettiCount = 100; // Number of confetti pieces
+
+        // Function to generate random positions
+        function getRandomPosition() {
+            return {
+                left: Math.random() * 100 + 'vw',
+                top: Math.random() * 50 + 'vh' // Starting position
+            };
+        }
+
+        // Function to create confetti pieces
+        function createConfetti() {
+            for (let i = 0; i < confettiCount; i++) {
+                let confettiPiece = document.createElement('div');
+                confettiPiece.className = 'confetti-piece';
+                let position = getRandomPosition();
+                confettiPiece.style.background = `hsl(${Math.random() * 360}, 70%, 50%)`; // Random color
+                confettiPiece.style.left = position.left;
+                confettiPiece.style.top = position.top;
+                confettiContainer.appendChild(confettiPiece);
+            }
+        }
+
+        // Function to detect blowing
+        function detectBlow() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const analyser = audioContext.createAnalyser();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+
+                    function checkVolume() {
+                        analyser.getByteFrequencyData(dataArray);
+                        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+                        
+                        if (average > 100 && flame.style.opacity === '1') { // Threshold for blowing
+                            flame.style.opacity = '0'; // Flame blown out
+                            createConfetti(); // Create confetti
+                            return; // Stop checking once the flame is blown out
+                        }
+
+                        requestAnimationFrame(checkVolume);
+                    }
+
+                    checkVolume();
+                })
+                .catch(err => console.error('Error accessing microphone:', err));
+        }
+
+        window.onload = detectBlow;
+    </script>
+</body>
+</html>
