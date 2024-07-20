@@ -3,155 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Birthday Cake</title>
+    <title>Birthday Cake</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dosis:wght@700&display=swap">
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            background-color: #fce4ec; /* Light pink background */
             margin: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden; /* Ensure confetti stays within viewport */
+            overflow: hidden;
+            font-family: 'Dosis', sans-serif;
+            position: relative;
+            background-color: #ffebef; /* Light pink background */
+            z-index: 1;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://www.highsnobiety.com/static-assets/dato/1696613219-drake-for-all-the-dogs-lyrics.jpg');
+            background-repeat: repeat;
+            background-size: 150px auto; /* Adjust size of repeated images */
+            animation: moveBackground 30s linear infinite;
+            filter: blur(4px); /* Reduced blur effect for the background */
+            opacity: 0.5; /* Make the background images semi-transparent */
+            z-index: 0;
+        }
+
+        @keyframes moveBackground {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 235, 239, 0.6); /* Semi-transparent light pink overlay */
+            z-index: 0;
+        }
+
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px; /* Increased font size for better visibility */
+            font-weight: bold;
+            color: #fff; /* White text color */
+            text-shadow: 2px 2px 4px #000; /* Black stroke outline for text */
+            opacity: 0;
+            z-index: 2;
+            text-align: center; /* Center text within the container */
+            white-space: nowrap; /* Prevent text from wrapping */
         }
 
         .cake {
-            position: relative;
             width: 200px;
-            height: 200px;
-            background: #fff;
-            border: 5px solid #e91e63; /* Pink border */
-            border-radius: 50% 50% 0 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            height: 150px;
+            background: pink;
+            border-radius: 15px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            transition: transform 0.5s ease, opacity 0.5s ease;
         }
 
-        .cake::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            background: #e91e63;
-            border-radius: 50%;
-            transform: translateX(-50%);
+        .cake.pop {
+            animation: popAnimation 1s forwards;
         }
 
         .flame {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            width: 40px;
-            height: 60px;
-            background: #ffeb3b; /* Yellow flame */
+            width: 30px;
+            height: 50px;
+            background: radial-gradient(circle at 50% 20%, orange, yellow);
             border-radius: 50%;
-            transform: translateX(-50%);
-            transition: opacity 0.5s ease;
-            opacity: 1; /* Start with the flame visible */
+            position: absolute;
+            top: -60px;
+            transform-origin: bottom center;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .flame.extinguish {
+            transform: scaleY(0);
+            opacity: 0;
         }
 
         .confetti {
             position: absolute;
             top: 0;
-            left: 50%;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             overflow: hidden;
-            z-index: 10; /* Make sure confetti is above the cake */
+            z-index: 1;
         }
 
-        .confetti-piece {
+        .confetti .particle {
             position: absolute;
             width: 10px;
             height: 10px;
-            background: #ffeb3b; /* Yellow confetti */
+            background: red;
             border-radius: 50%;
             opacity: 0;
-            animation: fall 2s forwards, expand 0.5s forwards;
         }
 
-        @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(360deg);
+        @keyframes fadeInBounce {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(10px);
+            }
+            80% {
+                transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popAnimation {
+            0% {
+                transform: scale(1);
                 opacity: 1;
             }
-        }
-
-        @keyframes expand {
-            from {
-                transform: scale(0);
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
             }
-            to {
-                transform: scale(1);
+            100% {
+                transform: scale(0);
+                opacity: 0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="cake">
+    <div class="background"></div>
+    <div class="overlay"></div>
+    <div class="message" id="message">Tillykke med fødselsdagen Anastacia!</div>
+    <div class="cake" id="cake">
         <div class="flame" id="flame"></div>
     </div>
     <div class="confetti" id="confetti"></div>
-    <script>
-        let flame = document.getElementById('flame');
-        let confettiContainer = document.getElementById('confetti');
-        let confettiCount = 100; // Number of confetti pieces
 
-        // Function to generate random positions
-        function getRandomPosition() {
-            return {
-                left: Math.random() * 100 + 'vw',
-                top: Math.random() * 50 + 'vh' // Starting position
-            };
+    <script>
+        const cake = document.getElementById('cake');
+        const flame = document.getElementById('flame');
+        const confettiContainer = document.getElementById('confetti');
+        const message = document.getElementById('message');
+        let flameExtinguished = false;
+
+        // Function to create and animate confetti
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.background = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                confettiContainer.appendChild(particle);
+                
+                // Animate particle falling
+                particle.animate([
+                    { transform: `translateY(${Math.random() * 100}vh)`, opacity: 1 },
+                    { transform: 'translateY(100vh)', opacity: 0 }
+                ], {
+                    duration: 2000 + Math.random() * 2000,
+                    easing: 'ease-out'
+                });
+            }
+
+            // Display message after confetti animation
+            setTimeout(() => {
+                message.style.opacity = 1; // Ensure the message is visible
+                message.style.animation = 'fadeInBounce 2s forwards'; // Apply the animation
+            }, 2000); // Show message after confetti animation
         }
 
-        // Function to create confetti pieces
-        function createConfetti() {
-            for (let i = 0; i < confettiCount; i++) {
-                let confettiPiece = document.createElement('div');
-                confettiPiece.className = 'confetti-piece';
-                let position = getRandomPosition();
-                confettiPiece.style.background = `hsl(${Math.random() * 360}, 70%, 50%)`; // Random color
-                confettiPiece.style.left = position.left;
-                confettiPiece.style.top = position.top;
-                confettiContainer.appendChild(confettiPiece);
+        // Function to handle blowing out the flame
+        function extinguishFlame() {
+            if (!flameExtinguished) {
+                flame.classList.add('extinguish');
+                cake.classList.add('pop'); // Add pop animation to cake
+                createConfetti();
+                flameExtinguished = true;
             }
         }
 
-        // Function to detect blowing
-        function detectBlow() {
+        // Check if the browser supports the Web Audio API
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const analyser = audioContext.createAnalyser();
-                    const source = audioContext.createMediaStreamSource(stream);
-                    source.connect(analyser);
+            .then(stream => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
 
-                    analyser.fftSize = 256;
-                    const bufferLength = analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
 
-                    function checkVolume() {
-                        analyser.getByteFrequencyData(dataArray);
-                        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-                        
-                        if (average > 100 && flame.style.opacity === '1') { // Threshold for blowing
-                            flame.style.opacity = '0'; // Flame blown out
-                            createConfetti(); // Create confetti
-                            return; // Stop checking once the flame is blown out
+                let lastBlowTime = 0;
+                const blowThreshold = 70; // Adjust this value based on testing
+
+                function updateFlame() {
+                    analyser.getByteFrequencyData(dataArray);
+
+                    // Get the average volume
+                    const sum = dataArray.reduce((a, b) => a + b, 0);
+                    const average = sum / bufferLength;
+
+                    // Detect loud sound (indicating a blow)
+                    if (average > blowThreshold) {
+                        const currentTime = Date.now();
+                        if (currentTime - lastBlowTime > 500) { // Prevent rapid triggers
+                            lastBlowTime = currentTime;
+                            extinguishFlame();
                         }
-
-                        requestAnimationFrame(checkVolume);
                     }
 
-                    checkVolume();
-                })
-                .catch(err => console.error('Error accessing microphone:', err));
-        }
+                    requestAnimationFrame(updateFlame);
+                }
 
-        window.onload = detectBlow;
+                updateFlame();
+            })
+            .catch(err => {
+                console.error('Error accessing the microphone', err);
+            });
+        } else {
+            alert('Your browser does not support audio input.');
+        }
     </script>
 </body>
 </html>
