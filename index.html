@@ -210,7 +210,7 @@
             }
         }
 
-        // Check if the browser supports the Web Audio API
+        // Check if the browser supports the Web Audio API and get microphone access
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
@@ -249,9 +249,10 @@
             })
             .catch(err => {
                 console.error('Error accessing the microphone', err);
+                alert('Please enable microphone access to blow out the flame.');
             });
         } else {
-            alert('Your browser does not support audio input.');
+            alert('Your browser does not support audio input or permissions are not granted.');
         }
     </script>
 </body>
