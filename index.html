@@ -8,7 +8,6 @@
     <style>
         body {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
@@ -54,19 +53,22 @@
             z-index: 0;
         }
 
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 2;
+        }
+
         .message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             font-size: 36px; /* Increased font size for better visibility */
             font-weight: bold;
             color: #fff; /* White text color */
             text-shadow: 2px 2px 4px #000; /* Black stroke outline for text */
             opacity: 0;
-            z-index: 2;
-            text-align: center; /* Center text within the container */
-            white-space: nowrap; /* Prevent text from wrapping */
+            margin-bottom: 20px; /* Space between text and cake */
         }
 
         .cake {
@@ -78,7 +80,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1;
             transition: transform 0.5s ease, opacity 0.5s ease;
         }
 
@@ -157,9 +158,11 @@
 <body>
     <div class="background"></div>
     <div class="overlay"></div>
-    <div class="message" id="message">Tillykke med fødselsdagen Anastacia!</div>
-    <div class="cake" id="cake">
-        <div class="flame" id="flame"></div>
+    <div class="container">
+        <div class="message" id="message">Tillykke med fødselsdagen Anastacia!</div>
+        <div class="cake" id="cake">
+            <div class="flame" id="flame"></div>
+        </div>
     </div>
     <div class="confetti" id="confetti"></div>
 
